@@ -3,8 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\News;
-use App\Http\Requests\StoreNewsRequest;
-use App\Http\Requests\UpdateNewsRequest;
+use Illuminate\Support\Facades\Cache;
 
 class NewsController extends Controller
 {
@@ -13,7 +12,18 @@ class NewsController extends Controller
      */
     public function index()
     {
-        $news = News::orderByDesc('created_at')->limit(10)->get();
+        $news = [];
+        
+        // if(Cache::has('first_ten_news')){
+        //    $news = Cache::get('first_ten_news');
+        // } else {
+        //     $news = News::orderByDesc('created_at')->limit(10)->get();
+        //     Cache::put('first_ten_news', $news, 30);
+        // }
+
+        $news = Cache::remember('first_ten_news', 30, function(){
+            return News::orderByDesc('created_at')->limit(10)->get();
+        });
 
         return view('news', ['news' => $news]);
     }
